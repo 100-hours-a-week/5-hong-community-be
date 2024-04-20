@@ -1,0 +1,9 @@
+# idea
+.idea/
+
+# Node.js
+node_modules/
+
+# Local
+.DS_Store
+.env

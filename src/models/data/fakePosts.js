@@ -1,0 +1,122 @@
+// default posts data
+
+// TODO: 1) response DTO 에서 likeCount, commentsCount, hitsCount 생성하여 응답 해야함
+//          1-1) count column(일단 이방식 채택) VS count query ?
+//          1-2) batch 집계 VS 실시간 집계
+//          1-3) SEQUENCE - pgsql 사용시
+//       2) cursor base pagination
+//          2-1) response DTO 에 hasNext 필드 추가
+//          2-2) 쿼리시, 표시할 게시글수 + 1
+
+const posts = [
+  {
+    postsId: 1,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능 최대 26자까지 가능 최대 26자 까지 가능',
+    contents: '무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀',
+    createdAt: '2020-12-31 12:34:56',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 13,
+    hitsCount: 100,
+    likesCount: 131236,
+    ownerId: 1,
+    isVisible: true,
+  },
+  {
+    postsId: 2,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능',
+    contents: 'ㅇㅅㅇ',
+    createdAt: '2024-01-01 00:00:00',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 431,
+    likesCount: 16,
+    ownerId: 2,
+    isVisible: true,
+  },
+  {
+    postsId: 3,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능',
+    contents: 'ㅇㅅㅇ',
+    createdAt: '2024-01-02 00:01:12',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 421,
+    likesCount: 133126,
+    ownerId: 3,
+    isVisible: true,
+  },
+  {
+    postsId: 4,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능 최대 26자까지 가능 최대 26자 까지 가능',
+    contents: '무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀',
+    createdAt: '2021-01-03 12:34:56',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 431,
+    likesCount: 15436,
+    ownerId: 1,
+    isVisible: true,
+  },
+  {
+    postsId: 5,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능',
+    contents: 'ㅇㅅㅇ',
+    createdAt: '2024-01-04 00:00:00',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 15,
+    likesCount: 16,
+    ownerId: 2,
+    isVisible: true,
+  },
+  {
+    postsId: 6,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능',
+    contents: 'ㅇㅅㅇ',
+    createdAt: '2024-01-05 00:01:12',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 544,
+    likesCount: 1632,
+    ownerId: 3,
+    isVisible: true,
+  },
+  {
+    postsId: 7,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능 최대 26자까지 가능 최대 26자 까지 가능',
+    contents: '무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀',
+    createdAt: '2021-01-06 12:34:56',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 13214,
+    likesCount: 16,
+    ownerId: 1,
+    isVisible: true,
+  },
+  {
+    postsId: 8,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능',
+    contents: 'ㅇㅅㅇ',
+    createdAt: '2024-01-07 00:00:00',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 543,
+    likesCount: 16,
+    ownerId: 2,
+    isVisible: true,
+  },
+  {
+    postsId: 9,
+    title: '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능',
+    contents: 'ㅇㅅㅇ',
+    createdAt: '2024-01-08 00:01:12',
+    thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
+    commentsCount: 0,
+    hitsCount: 111425,
+    likesCount: 16,
+    ownerId: 3,
+    isVisible: true,
+  },
+];
+
+module.exports = posts;

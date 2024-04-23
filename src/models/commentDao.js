@@ -15,9 +15,9 @@ const save = (comment) => {
   }
 
   // commentsId 가 있는 경우 (update)
-  const commentsId = comment.postsId;
+  const commentsId = comment.commentsId;
   const index = comments.findIndex(_comment =>
-    _comment.postsId === commentsId &&
+    _comment.commentsId === commentsId &&
     _comment.isVisible,
   );
 
@@ -31,7 +31,7 @@ const save = (comment) => {
 // 실제로 삭제하지 않고 isVisible 만 false
 const deleteById = (commentsId) => {
   const index = comments.findIndex((comment) =>
-    comment.postsId === commentsId &&
+    comment.commentsId === commentsId &&
     comment.isVisible,
   );
 
@@ -44,7 +44,7 @@ const deleteById = (commentsId) => {
 
 const findById = (commentsId) => {
   return comments.find((comment) =>
-    comment.id === commentsId &&
+    comment.commentsId === commentsId &&
     comment.isVisible,
   );
 };

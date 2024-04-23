@@ -45,7 +45,9 @@ const createComment = (req, res, next) => {
   findPosts.commentsCount = findPosts.commentsCount + 1;
   postDao.save(findPosts);
 
-  return res.status(201).send({ message: '새 게시글 생성 완료' });
+  // return res.status(201).send({ message: '새 게시글 생성 완료' });
+  const response = pagination._convertOwnerInfo(newComments);
+  return res.status(200).send(response);
 };
 
 // 댓글 수정 - [PUT] "/api/v1/comments/{id}"

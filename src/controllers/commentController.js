@@ -75,6 +75,14 @@ const deleteComment = (req, res, next) => {
     return res.status(404).send({ message: '존재하지 않는 댓글' });
   }
 
+  commentDao.deleteById(commentsId);
+
+  // 종속된 게시글의 댓글 수 - 1
+  const postsId = findComments.postsId;
+  const findPosts = postDao.findById(postsId);
+  findPosts.commentsCount = findPosts.commentsCount - 1;
+  postDao.save(findPosts);
+
   return res.status(204).end();
 };
 

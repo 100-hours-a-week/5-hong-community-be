@@ -111,7 +111,7 @@ const posts = [
     contents: '내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용',
     createdAt: '2024-01-08 00:01:12',
     thumbnail: 'https://avatars.githubusercontent.com/u/144337839?v=4',
-    commentsCount: 3,
+    commentsCount: 23,
     hitsCount: 0,
     likesCount: 0,
     ownerId: 3,

@@ -2,7 +2,7 @@ const { comments } = require('./data');
 
 // TODO: pageSize 설정 .env or property 로 이동 (임시 : 10)
 const pageSize = 10;
-let sequenceId = 17;  // 시작 ID
+let sequenceId = 37;  // 시작 ID
 
 // { commentsId, contents, createdAt, ownerId, postsId, isVisible }
 const save = (comment) => {

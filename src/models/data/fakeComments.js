@@ -105,6 +105,30 @@ const comments = [
     postsId: 1,
     isVisible: true,
   },
+  {
+    commentsId: 14,
+    contents: '미래에서 온 댓글이요 1',
+    createdAt: '2034-12-31 12:34:56',
+    ownerId: 3,
+    postsId: 9,
+    isVisible: true,
+  },
+  {
+    commentsId: 15,
+    contents: '미래에서 온 댓글이요 2',
+    createdAt: '2034-12-31 12:34:56',
+    ownerId: 2,
+    postsId: 9,
+    isVisible: true,
+  },
+  {
+    commentsId: 16,
+    contents: '미래에서 온 댓글이요 3',
+    createdAt: '2034-12-31 12:34:56',
+    ownerId: 1,
+    postsId: 9,
+    isVisible: true,
+  },
 ];
 
 module.exports = comments;

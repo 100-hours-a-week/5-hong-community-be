@@ -13,6 +13,7 @@ router.post('/signup', memberController.signup);
 // router.put('/:id/password', memberController.updatePassword);  // legacy
 // router.delete('/:id', memberController.withdraw);  // legacy
 router.get('/', loginRequired, memberController.me);
+router.post('/logout', loginRequired, memberController.logout);
 router.put('/nickname', loginRequired, memberController.updateNickname);
 router.put('/password', loginRequired, memberController.updatePassword);
 router.delete('/', loginRequired, memberController.withdraw);

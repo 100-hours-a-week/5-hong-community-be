@@ -81,6 +81,16 @@ const signup = (req, res, next) => {
   return res.status(201).json({ message: '회원가입 성공' });
 };
 
+// 로그아웃 - [POST] "/api/v1/members/logout"
+const logout = (req, res, next) => {
+  req.session.destroy((error) => {
+    if (error) {
+      throw error;
+    }
+    res.status(200).json({ message: '바이바이' });
+  });
+};
+
 // 닉네임 수정 - [PUT] "/api/v1/members/{id}/nickname" (legacy)
 // 닉네임 수정 - [PUT] "/api/v1/members/nickname"
 const updateNickname = (req, res, next) => {
@@ -151,6 +161,7 @@ module.exports = {
   me,
   login,
   signup,
+  logout,
   updateNickname,
   updatePassword,
   withdraw,

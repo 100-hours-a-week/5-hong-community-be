@@ -1,16 +1,22 @@
 const router = require('express').Router();
 
 const { memberController, memberValidateController } = require('../controllers');
+const { loginRequired } = require('../middlewares/loginRequired');
 
 // TODO: 이미지 업로드 추가 해야함
 
 // member API
-router.get('/:id', memberController.me);
 router.post('/login', memberController.login);
 router.post('/signup', memberController.signup);
-router.put('/:id/nickname', memberController.updateNickname);
-router.put('/:id/password', memberController.updatePassword);
-router.delete('/:id', memberController.withdraw);
+// router.get('/:id', memberController.me);  // legacy
+// router.put('/:id/nickname', memberController.updateNickname);  // legacy
+// router.put('/:id/password', memberController.updatePassword);  // legacy
+// router.delete('/:id', memberController.withdraw);  // legacy
+router.get('/', loginRequired, memberController.me);
+router.put('/nickname', loginRequired, memberController.updateNickname);
+router.put('/password', loginRequired, memberController.updatePassword);
+router.delete('/', loginRequired, memberController.withdraw);
+
 
 // member validate API
 router.post('/email', memberValidateController.validateEmail);

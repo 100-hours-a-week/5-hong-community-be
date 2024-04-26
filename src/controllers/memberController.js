@@ -8,12 +8,15 @@
 const { memberDao } = require('../models');
 const { timeUtils } = require('../utils');
 
-// 본인정보 - [GET] "/api/v1/members/{id}"
+// 본인정보 - [GET] "/api/v1/members/{id}" (legacy)
+// 본인정보 - [GET] "/api/v1/members"
 const me = (req, res, next) => {
   // TODO: JWT 기반으로 변경해야함.
 
-  const memberId = parseInt(req.params.id);
-  const findMember = memberDao.findById(memberId);
+  // const memberId = parseInt(req.params.id);
+  // const findMember = memberDao.findById(memberId);
+
+  const findMember = req.member;  // session 기반 인증
 
   // 해당 회원이 없는 경우
   if (!findMember) {
@@ -40,6 +43,9 @@ const login = (req, res, next) => {
   if (findMember.password !== password) {
     return res.status(401).json({ message: '일치하지 않는 비밀번호' });
   }
+
+  // session 저장
+  req.session.member = { memberId: findMember.memberId };
 
   return res.status(200).json({ message: '로그인 성공' });
 };
@@ -75,7 +81,8 @@ const signup = (req, res, next) => {
   return res.status(201).json({ message: '회원가입 성공' });
 };
 
-// 닉네임 수정 - [PUT] "/api/v1/members/{id}/nickname"
+// 닉네임 수정 - [PUT] "/api/v1/members/{id}/nickname" (legacy)
+// 닉네임 수정 - [PUT] "/api/v1/members/nickname"
 const updateNickname = (req, res, next) => {
   const { nickname } = req.body;
   if (!nickname) {
@@ -87,11 +94,13 @@ const updateNickname = (req, res, next) => {
     return res.status(409).json({ message: '이미 존재하는 닉네임' });
   }
 
-  const memberId = parseInt(req.params.id);
-  const findMember = memberDao.findById(memberId);
-  if (!findMember) {
-    return res.status(404).json({ message: '존재하지 않는 회원' });
-  }
+  // const memberId = parseInt(req.params.id);
+  // const findMember = memberDao.findById(memberId);
+  // if (!findMember) {
+  //   return res.status(404).json({ message: '존재하지 않는 회원' });
+  // }
+
+  const findMember = req.member;  // session 기반 인증
 
   findMember.nickname = nickname;
   memberDao.save(findMember);
@@ -99,18 +108,21 @@ const updateNickname = (req, res, next) => {
   return res.status(204).end();
 };
 
-// 비밀번호 수정 - [PUT] "/api/v1/members/{id}/password"
+// 비밀번호 수정 - [PUT] "/api/v1/members/{id}/password" (legacy)
+// 비밀번호 수정 - [PUT] "/api/v1/members/password"
 const updatePassword = (req, res, next) => {
   const { password } = req.body;
   if (!password) {
     return res.status(400).json({ message: '필수 필드 누락' });
   }
 
-  const memberId = parseInt(req.params.id);
-  const findMember = memberDao.findById(memberId);
-  if (!findMember) {
-    return res.status(404).json({ message: '존재하지 않는 회원' });
-  }
+  // const memberId = parseInt(req.params.id);
+  // const findMember = memberDao.findById(memberId);
+  // if (!findMember) {
+  //   return res.status(404).json({ message: '존재하지 않는 회원' });
+  // }
+
+  const findMember = req.member;  // session 기반 인증
 
   findMember.password = password;
   memberDao.save(findMember);
@@ -118,14 +130,17 @@ const updatePassword = (req, res, next) => {
   return res.status(204).end();
 };
 
-// 회원 탈퇴 - [DELETE] "/api/v1/member/{id}"
+// 회원 탈퇴 - [DELETE] "/api/v1/member/{id}" (legacy)
+// 회원 탈퇴 - [DELETE] "/api/v1/member"
 const withdraw = (req, res, next) => {
-  const memberId = parseInt(req.params.id);
+  // const memberId = parseInt(req.params.id);
+  // const findMember = memberDao.findById(memberId);
+  // if (!findMember) {
+  //   return res.status(404).json({ message: '존재하지 않는 사용자' });
+  // }
 
-  const findMember = memberDao.findById(memberId);
-  if (!findMember) {
-    return res.status(404).json({ message: '존재하지 않는 사용자' });
-  }
+  const findMember = req.member;  // session 기반 인증
+  const memberId = findMember.memberId;
 
   memberDao.deleteById(memberId);
 

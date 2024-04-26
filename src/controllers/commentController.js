@@ -7,7 +7,7 @@ const { postDao, commentDao } = require('../models');
 const { timeUtils, pagination } = require('../utils');
 
 // TODO: 댓글 작성자 임시 (JWT 구현완료시 삭제)
-const tempPostsOwnerId = 1;
+// const tempPostsOwnerId = 1;
 
 // 10 댓글 씩 전송 (쿼리 요청 -> 10 +1 hasNext 필드)
 // 댓글 리스트(무한 스크롤) - [GET] "/api/v1/comments?postsId=&page="
@@ -21,20 +21,23 @@ const sliceCommentList = (req, res, next) => {
   // ownerId 의 세부정보로 변환
   const paginationResponse = pagination.convertOwnerInfo(sliceComments);
 
-  return res.status(200).send(paginationResponse);
+  return res.status(200).json(paginationResponse);
 };
 
 // 댓글 생성 - [POST] "/api/v1/comments"
 const createComment = (req, res, next) => {
   const { contents, postsId } = req.body;
   if (!contents || !postsId) {
-    return res.status(400).send({ message: '필수 필드 누락' });
+    return res.status(400).json({ message: '필수 필드 누락' });
   }
+
+  const nowMember = req.member;  // session 기반
 
   const newComments = {
     contents,
     createdAt: timeUtils.getCurrentTime(),
-    ownerId: tempPostsOwnerId,  // 임시 아이디
+    // ownerId: tempPostsOwnerId,  // 임시 아이디
+    ownerId: nowMember.memberId,
     postsId: postsId,
     isVisible: true,
   };
@@ -45,9 +48,9 @@ const createComment = (req, res, next) => {
   findPosts.commentsCount = findPosts.commentsCount + 1;
   postDao.save(findPosts);
 
-  // return res.status(201).send({ message: '새 게시글 생성 완료' });
+  // return res.status(201).json({ message: '새 게시글 생성 완료' });
   const response = pagination._convertOwnerInfo(newComments);
-  return res.status(200).send(response);
+  return res.status(200).json(response);
 };
 
 // 댓글 수정 - [PUT] "/api/v1/comments/{id}"
@@ -56,13 +59,22 @@ const updateComment = (req, res, next) => {
 
   const { contents } = req.body;
   if (!contents) {
-    return res.status(400).send({ message: '필수 필드 누락' });
+    return res.status(400).json({ message: '필수 필드 누락' });
   }
 
   const findComments = commentDao.findById(commentsId);
-  findComments.contents = contents;
+  if (!findComments) {
+    return res.status(404).json({ message: '없는 댓글임' });
+  }
 
+  const nowMember = req.member;  // session 기반
+  if (findComments.ownerId !== nowMember.memberId) {
+    return res.status(403).json({ message: '권한이 없으' });
+  }
+
+  findComments.contents = contents;
   commentDao.save(findComments);
+
   return res.status(204).end();
 };
 
@@ -72,7 +84,12 @@ const deleteComment = (req, res, next) => {
 
   const findComments = commentDao.findById(commentsId);
   if (!findComments) {
-    return res.status(404).send({ message: '존재하지 않는 댓글' });
+    return res.status(404).json({ message: '존재하지 않는 댓글' });
+  }
+
+  const nowMember = req.member;  // session 기반
+  if (findComments.ownerId !== nowMember.memberId) {
+    return res.status(403).json({ message: '권한이 없으' });
   }
 
   commentDao.deleteById(commentsId);

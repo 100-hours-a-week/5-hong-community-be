@@ -15,6 +15,7 @@ router.post('/signup', memberController.signup);
 router.get('/', loginRequired, memberController.me);
 router.post('/logout', loginRequired, memberController.logout);
 router.put('/nickname', loginRequired, memberController.updateNickname);
+router.put('/profile', loginRequired, memberController.updateProfile);
 router.put('/password', loginRequired, memberController.updatePassword);
 router.delete('/', loginRequired, memberController.withdraw);
 

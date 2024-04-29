@@ -52,8 +52,8 @@ const login = (req, res, next) => {
 
 // 회원가입 - [POST] "/api/v1/members/signup"
 const signup = (req, res, next) => {
-  const { email, password, nickname } = req.body;
-  if (!email || !password || !nickname) {
+  const { email, password, nickname, profileImage } = req.body;
+  if (!email || !password || !nickname || !profileImage) {
     return res.status(400).json({ message: '필수 필드 누락' });
   }
 
@@ -72,8 +72,9 @@ const signup = (req, res, next) => {
     email,
     password,
     nickname,
+    profileImage,
+    // profileImage: 'https://avatars.githubusercontent.com/u/144337839?v=4',
     createdAt: timeUtils.getCurrentTime(),
-    profileImage: 'https://avatars.githubusercontent.com/u/144337839?v=4',
     isActive: true,
   };
   memberDao.save(newMember);
@@ -113,6 +114,21 @@ const updateNickname = (req, res, next) => {
   const findMember = req.member;  // session 기반 인증
 
   findMember.nickname = nickname;
+  memberDao.save(findMember);
+
+  return res.status(204).end();
+};
+
+// 프로필 이미지 수정 - [PUT] "/api/v1/members/profile"
+const updateProfile = (req, res, next) => {
+  const { profileImage } = req.body;
+  if (!profileImage) {
+    return res.status(400).json({ message: '필수 필드 누락' });
+  }
+
+  const findMember = req.member;  // session 기반 인증
+
+  findMember.profileImage = profileImage;
   memberDao.save(findMember);
 
   return res.status(204).end();
@@ -163,6 +179,7 @@ module.exports = {
   signup,
   logout,
   updateNickname,
+  updateProfile,
   updatePassword,
   withdraw,
 };

@@ -84,7 +84,7 @@ const signup = (req, res, next) => {
 
 // 로그아웃 - [POST] "/api/v1/members/logout"
 const logout = (req, res, next) => {
-  req.session.destroy((error) => {
+  req.session.destroy(error => {
     if (error) {
       throw error;
     }
@@ -119,16 +119,28 @@ const updateNickname = (req, res, next) => {
   return res.status(204).end();
 };
 
-// 프로필 이미지 수정 - [PUT] "/api/v1/members/profile"
+// 프로필 이미지 수정 - [PUT] "/api/v1/members/profile" (legacy)
+// 프로필 수정 (닉네임 이미지) - [PATCH] "/api/v1/members/profile"
 const updateProfile = (req, res, next) => {
-  const { profileImage } = req.body;
-  if (!profileImage) {
-    return res.status(400).json({ message: '필수 필드 누락' });
+  // const { profileImage } = req.body;
+  // if (!profileImage) {
+  //   return res.status(400).json({ message: '필수 필드 누락' });
+  // }
+
+  const { nickname, profileImage } = req.body;
+  if (!profileImage && !nickname) {
+    return res.status(400).json({ message: '수정할 필드가 없음.' });
+  }
+
+  const isExist = memberDao.findByNickname(nickname);
+  if (isExist) {
+    return res.status(409).json({ message: '이미 존재하는 닉네임' });
   }
 
   const findMember = req.member;  // session 기반 인증
 
   findMember.profileImage = profileImage;
+  findMember.nickname = nickname;
   memberDao.save(findMember);
 
   return res.status(204).end();
@@ -148,7 +160,7 @@ const updatePassword = (req, res, next) => {
   //   return res.status(404).json({ message: '존재하지 않는 회원' });
   // }
 
-  const findMember = req.member;  // session 기반 인증
+  const findMember = req.member; // session 기반 인증
 
   findMember.password = password;
   memberDao.save(findMember);

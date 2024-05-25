@@ -15,10 +15,10 @@ router.post('/signup', memberController.signup);
 router.get('/', loginRequired, memberController.me);
 router.post('/logout', loginRequired, memberController.logout);
 router.put('/nickname', loginRequired, memberController.updateNickname);
-router.put('/profile', loginRequired, memberController.updateProfile);
+// router.put('/profile', loginRequired, memberController.updateProfile);  // legacy
 router.put('/password', loginRequired, memberController.updatePassword);
+router.patch('/profile', loginRequired, memberController.updateProfile);
 router.delete('/', loginRequired, memberController.withdraw);
-
 
 // member validate API
 router.post('/email', memberValidateController.validateEmail);

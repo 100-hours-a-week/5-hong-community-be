@@ -20,7 +20,8 @@ const members = [
     password: '123!@#qwe',
     nickname: '하이요',
     createdAt: '2024-01-02 12:34:56',
-    profileImage: 'https://i.namu.wiki/i/RnjOslX4dfnIfrh4_wJvHPM1S5NHqBpyw669AM1LV6gro8mahL5UPbBaVqMxLWY5s0YMI_0wtZOO9FsWULYfNFm-81WCsGMEm0Fz6RQdWNS-GROHzrBPqUuYyYwfz29PM6iqG9xhRu77Oz7fHVENIA.webp',
+    profileImage:
+      'https://github.com/JiHongKim98/5-hong-react-fe/assets/144337839/8a2e8cea-9fbc-4df6-aaa3-1c5dd2e11799',
     isActive: true,
   },
   {
@@ -29,7 +30,8 @@ const members = [
     password: '123!@#qwe',
     nickname: '김지홍',
     createdAt: '2024-01-03 12:34:56',
-    profileImage: 'https://i.namu.wiki/i/Hr9waEh-cRSyZHfaOkI1udC8SV1G97rJv7lXrYlI_yLJwKjeZvrcqeF0XLkeJ95SUJwafg-kmg1iS3qP4Bry987fzSVMLIK8yoD1O8jG3fyxgM9EzuEE2uU0P5tF4Jtnf8Ue0RYEATPAF_Ttf3ve8A.webp',
+    profileImage:
+      'https://github.com/JiHongKim98/5-hong-react-fe/assets/144337839/5bc8e623-7657-4b64-9f36-a19051f4ee91',
     isActive: true,
   },
   {
@@ -38,7 +40,8 @@ const members = [
     password: '123!@#qwe',
     nickname: '하암',
     createdAt: '2024-01-04 12:34:56',
-    profileImage: 'https://i.namu.wiki/i/_Af35lkAvgaNcU_IlCa7SuPr4UIGJgR6PD05Eypp-0ws2wt8mEegb3BD_B1t-Jy9-WInArSgCl5LidZOLPMT4aEOjE_qP7u2wUsHsocxl3s0HlY-EKcnkXMZbKFJn4OPAWFHa8NI7xb0gSzMONwreQ.webp',
+    profileImage:
+      'https://github.com/JiHongKim98/5-hong-react-fe/assets/144337839/a9e8b413-89d8-4f79-b4dd-2d9e45973ff0',
     isActive: true,
   },
 ];

@@ -30,6 +30,7 @@ const createComment = (req, res, next) => {
   if (!contents || !postsId) {
     return res.status(400).json({ message: '필수 필드 누락' });
   }
+  const intTypePostsId = parseInt(postsId);
 
   const nowMember = req.member;  // session 기반
 
@@ -38,13 +39,13 @@ const createComment = (req, res, next) => {
     createdAt: timeUtils.getCurrentTime(),
     // ownerId: tempPostsOwnerId,  // 임시 아이디
     ownerId: nowMember.memberId,
-    postsId: postsId,
+    postsId: intTypePostsId,
     isVisible: true,
   };
   commentDao.save(newComments);
 
   // 종속된 게시글의 댓글 수 +1
-  const findPosts = postDao.findById(postsId);
+  const findPosts = postDao.findById(intTypePostsId);
   findPosts.commentsCount = findPosts.commentsCount + 1;
   postDao.save(findPosts);
 

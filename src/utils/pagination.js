@@ -3,7 +3,7 @@ const { memberDao } = require('../models');
 // TODO: 네이밍 맘에 안듬, utils 클래스 말고 다른곳?
 const convertOwnerInfo = (sliceData) => {
   if (!sliceData.data) {
-    return;
+    return sliceData;
   }
 
   sliceData.data = sliceData.data.map((data) =>

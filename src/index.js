@@ -37,10 +37,11 @@ const createApp = () => {
   app.use('/public/images', express.static('public/images'));
 
   app.post('/api/v1/uploads/image', imageUpload.single('file'), (req, res) => {
-      const filename = req.file.filename;
-      res.status(200).json({ filename });
-    },
-  );
+    console.log(req.file);
+    const filename = req.file.filename;
+    const image = `http://localhost:8000/public/images/${filename}`;  // 임시
+    res.status(200).json({ image });
+  });
   // ======임시 이미지 업로드======
 
   return app;

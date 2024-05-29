@@ -17,7 +17,7 @@ VALUES ('kinjihong@naver.com', '123!@#qwe', 'hong.kim', 'https://avatars.githubu
         'https://github.com/JiHongKim98/5-hong-react-fe/assets/144337839/a9e8b413-89d8-4f79-b4dd-2d9e45973ff0');
 
 -- 게시글 더미 데이터
-INSERT INTO post (member_id, title, contents, thumbnail)
+INSERT INTO post (owner_id, title, contents, thumbnail)
 VALUES (1, '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까지 가능 최대 26자까지 가능 최대 26자 까지 가능',
         '무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀무엇을 얘기할까요? 아무말이라면, 삶은 항상 놀',
         'https://avatars.githubusercontent.com/u/144337839?v=4'),
@@ -40,7 +40,7 @@ VALUES (1, '최대 26자까지 가능 최대 26자 까지 가능 최대 26자까
         'https://avatars.githubusercontent.com/u/144337839?v=4');
 
 -- 댓글 더미 데이터
-INSERT INTO comment (member_id, post_id, contents)
+INSERT INTO comment (owner_id, post_id, contents)
 VALUES (1, 11, 'ㅎㅇㅎㅇ'),
        (2, 11, '댓글 댓글'),
        (3, 11, '더미 댓글'),

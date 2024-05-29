@@ -11,7 +11,43 @@ const mysqlConfig = {
 
 const pool = mysql.createPool(mysqlConfig).promise();
 
+// with transaction - command 작업
+const command = async (handler) => {
+  let conn;
+
+  try {
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+
+    const result = await handler(conn);
+
+    await conn.commit();
+    return result;
+  } catch (err) {
+    if (conn) await conn.rollback();
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+// without transaction - query 작업
+const query = async (sql, values) => {
+  let conn;
+
+  try {
+    conn = await pool.getConnection();
+    const [rows] = await conn.query(sql, values);
+    return rows;
+  } catch (err) {
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   mysqlConfig,
-  pool,
+  command,
+  query,
 };

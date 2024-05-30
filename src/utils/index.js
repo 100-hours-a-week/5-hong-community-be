@@ -1,7 +1,9 @@
 const timeUtils = require('./timeUtils');
-const pagination = require('./pagination');
+const conversionUtils = require('./conversionUtils');
+const cursorPageUtils = require('./cursorPageUtils');
 
 module.exports = {
   timeUtils,
-  pagination,
+  conversionUtils,
+  cursorPageUtils,
 };

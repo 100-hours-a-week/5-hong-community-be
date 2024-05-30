@@ -1,107 +1,96 @@
-// TODO: 1) 중복 코드 리팩토링
-//       2) 서비스 로직 분리해야함
-//       3) 현재 인증/인가 로직이 없음
-//       4) 엔티티 자체 반환 문제 DTO
+// TODO: page -> cursor
 
-const { postDao, commentDao } = require('../models');
-const { timeUtils, pagination } = require('../utils');
-
-// TODO: 댓글 작성자 임시 (JWT 구현완료시 삭제)
-// const tempPostsOwnerId = 1;
+const { commentDao } = require('../models');
+const { command } = require('../config/database');
+const { timeUtils, cursorPageUtils } = require('../utils');
 
 // 10 댓글 씩 전송 (쿼리 요청 -> 10 +1 hasNext 필드)
-// 댓글 리스트(무한 스크롤) - [GET] "/api/v1/comments?postsId=&page="
-const sliceCommentList = (req, res, next) => {
-  const { postsId, page } = req.query;
-  const parsedPostsId = postsId ? parseInt(postsId, 10) : 1;
-  const parsedPage = page ? parseInt(page, 10) : 1;
+// 댓글 리스트(무한 스크롤) - [GET] "/api/v1/comments?postId=&page="
+const sliceCommentList = async (req, res, next) => {
+  const { postId, page } = req.query;
+  const parsedPostId = postId ? parseInt(postId, 10) : 1;
+  const cursor = page ? parseInt(page, 10) : null;
 
-  // hasNext, nextPage, data
-  const sliceComments = commentDao.findAllByPostsIdOrderByIdDesc(parsedPostsId, parsedPage);
-  // ownerId 의 세부정보로 변환
-  const paginationResponse = pagination.convertOwnerInfo(sliceComments);
+  const commentList =
+    await commentDao.findAllByPostIdOrderByIdDesc({ postId: parsedPostId, cursor });
 
-  return res.status(200).json(paginationResponse);
-};
+  const maxViewNum = 5;
+  const baseCursor = 'commentId';
+  const response = cursorPageUtils.sliceResponse(commentList, maxViewNum, baseCursor);
 
-// 댓글 생성 - [POST] "/api/v1/comments"
-const createComment = (req, res, next) => {
-  const { contents, postsId } = req.body;
-  if (!contents || !postsId) {
-    return res.status(400).json({ message: '필수 필드 누락' });
-  }
-  const intTypePostsId = parseInt(postsId);
-
-  const nowMember = req.member;  // session 기반
-
-  const newComments = {
-    contents,
-    createdAt: timeUtils.getCurrentTime(),
-    // ownerId: tempPostsOwnerId,  // 임시 아이디
-    ownerId: nowMember.memberId,
-    postsId: intTypePostsId,
-    isVisible: true,
-  };
-  commentDao.save(newComments);
-
-  // 종속된 게시글의 댓글 수 +1
-  const findPosts = postDao.findById(intTypePostsId);
-  findPosts.commentsCount = findPosts.commentsCount + 1;
-  postDao.save(findPosts);
-
-  // return res.status(201).json({ message: '새 게시글 생성 완료' });
-  const response = pagination._convertOwnerInfo(newComments);
   return res.status(200).json(response);
 };
 
+// 댓글 생성 - [POST] "/api/v1/comments"
+const createComment = async (req, res, next) => {
+  const currentMember = req.member;  // session 기반
+
+  const { contents, postId } = req.body;
+  if (!contents || !postId)
+    return res.status(400).json({ message: '필수 필드 누락' });
+
+  const intTypePostId = parseInt(postId);
+
+  // transaction
+  return await command(async (conn) => {
+    const newComment = {
+      contents,
+      createdAt: timeUtils.getCurrentTime(),
+      ownerId: currentMember.memberId,
+      postId: intTypePostId,
+      isVisible: true,
+    };
+    await commentDao.save({ conn, comment: newComment });
+
+    return res.status(201).json({ message: '새 게시글 생성 완료' });
+  });
+};
+
 // 댓글 수정 - [PUT] "/api/v1/comments/{id}"
-const updateComment = (req, res, next) => {
-  const commentsId = parseInt(req.params.id);
+const updateComment = async (req, res, next) => {
+  const currentMember = req.member;  // session 기반
 
   const { contents } = req.body;
-  if (!contents) {
+  if (!contents)
     return res.status(400).json({ message: '필수 필드 누락' });
-  }
 
-  const findComments = commentDao.findById(commentsId);
-  if (!findComments) {
-    return res.status(404).json({ message: '없는 댓글임' });
-  }
+  const commentId = parseInt(req.params.id);
 
-  const nowMember = req.member;  // session 기반
-  if (findComments.ownerId !== nowMember.memberId) {
-    return res.status(403).json({ message: '권한이 없으' });
-  }
+  // transaction
+  return await command(async (conn) => {
+    const findComment = await commentDao.findByIdWithVisible({ conn, id: commentId });
+    if (!findComment)
+      return res.status(404).json({ message: '없는 댓글임' });
 
-  findComments.contents = contents;
-  commentDao.save(findComments);
+    if (findComment.ownerId !== currentMember.memberId)
+      return res.status(403).json({ message: '권한이 없으' });
 
-  return res.status(204).end();
+    findComment.contents = contents;
+    await commentDao.save({ conn, comment: findComment });
+
+    return res.status(204).end();
+  });
 };
 
 // 댓글 삭제 - [DELETE] "/api/v1/comments/{id}"
-const deleteComment = (req, res, next) => {
-  const commentsId = parseInt(req.params.id);
+const deleteComment = async (req, res, next) => {
+  const currentMember = req.member;  // session 기반
 
-  const findComments = commentDao.findById(commentsId);
-  if (!findComments) {
-    return res.status(404).json({ message: '존재하지 않는 댓글' });
-  }
+  const commentId = parseInt(req.params.id);
 
-  const nowMember = req.member;  // session 기반
-  if (findComments.ownerId !== nowMember.memberId) {
-    return res.status(403).json({ message: '권한이 없으' });
-  }
+  // transaction
+  return await command(async (conn) => {
+    const findComment = await commentDao.findByIdWithVisible({ conn, id: commentId });
+    if (!findComment)
+      return res.status(404).json({ message: '존재하지 않는 댓글' });
 
-  commentDao.deleteById(commentsId);
+    if (findComment.ownerId !== currentMember.memberId)
+      return res.status(403).json({ message: '권한이 없으' });
 
-  // 종속된 게시글의 댓글 수 - 1
-  const postsId = findComments.postsId;
-  const findPosts = postDao.findById(postsId);
-  findPosts.commentsCount = findPosts.commentsCount - 1;
-  postDao.save(findPosts);
+    await commentDao.deleteById({ conn, id: commentId });
 
-  return res.status(204).end();
+    return res.status(204).end();
+  });
 };
 
 module.exports = {

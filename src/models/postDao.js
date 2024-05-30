@@ -1,84 +1,127 @@
-// 일단은 in-memory DB
-const { posts } = require('./data');
+const { query } = require('../config/database');
+const { conversionUtils } = require('../utils');
 
-// TODO: pageSize 설정 .env or property 로 이동 (임시 : 5)
-const pageSize = 5;
-let sequenceId = 10; // 시작 ID
+// command executor
 
-// { postsId, title, contents, createdAt, thumbnail, commentsCount,
-// hitsCount, likesCount, ownerId, isVisible }
-const save = post => {
-  // postsId 가 없는 경우 (insert)
-  if (!post.postsId) {
-    post.postsId = sequenceId;
-    posts.push(post);
-    sequenceId++;
-    return;
+const save = async ({ conn, post }) => {
+  if (!post.postId) {
+    const [result] = await conn.query(  // insert query
+      `INSERT INTO post (owner_id, title, contents, thumbnail, created_at)
+       VALUES (?, ?, ?, ?, ?)`,
+      [post.ownerId, post.title, post.contents, post.thumbnail, post.createdAt],
+    );
+    return result.insertId;
   }
 
-  // postsId 가 있는 경우 (update)
-  const postsId = post.postsId;
-  const index = posts.findIndex(
-    _post => _post.postsId === postsId && _post.isVisible,
+  const [result] = await conn.query(  // update query
+    `UPDATE post
+     SET title     = ?,
+         contents  = ?,
+         thumbnail = ?
+     WHERE post_id = ?`,
+    [post.title, post.contents, post.thumbnail, post.postId],
   );
-
-  if (index !== -1) {
-    posts[index] = post;
-    return;
-  }
-  throw new Error('존재하지 않는 게시글 - 서버 (로직) 오류');
+  return result.insertId;
 };
 
-// 실제로 삭제하지 않고 isVisible 만 false
-const deleteById = postsId => {
-  const index = posts.findIndex(
-    post => post.postsId === postsId && post.isVisible,
+const deleteById = async ({ conn, id }) => {
+  const [result] = await conn.query(
+    `UPDATE post
+     SET is_visible = FALSE
+     WHERE post_id = ?`,
+    [id],
   );
-
-  if (index !== -1) {
-    // 해당 게시글을 안보이게 변경
-    posts[index].isVisible = false;
-    return;
-  }
-  throw new Error('존재하지 않는 게시글 - 서버 (로직) 오류');
+  return result.insertId;
 };
 
-// TODO: 네이밍 맘에 안듬 + 로직을 분리해야할 듯?
-// slice & desc 임시
-const findAllOrderByIdDesc = page => {
-  const visiblePosts = posts.filter(post => post.isVisible);
+// query executor
 
-  const totalPosts = visiblePosts.length;
+// 실제로는 5개만 보여줄 거지만 +1 즉, 6개를 검색해서 hasNext 를 만듬
+const findAllOrderByIdDesc = async ({ conn, cursor, limit = 6 }) => {
+  const orderAndLimitClause = `
+    ORDER BY p.post_id DESC
+    LIMIT ?
+  `;
 
-  const startIndex = Math.max(totalPosts - page * pageSize, 0);
-  const endIndex = Math.min(totalPosts - (page - 1) * pageSize, totalPosts);
+  const sql = `SELECT p.post_id,
+                      p.title,
+                      p.contents,
+                      p.created_at,
+                      p.thumbnail,
+                      p.is_visible,
+                      m.member_id,
+                      m.nickname,
+                      m.profile_image
+               FROM post p
+                        JOIN member m ON p.owner_id = m.member_id
+               WHERE p.is_visible = TRUE
+                   ${cursor ? `AND p.post_id <= ?` : ''} ${orderAndLimitClause}`;
+  const values = cursor ? [cursor, limit] : [limit];
 
-  let result = {
-    hasNext: false,
-    nextPage: null,
-    data: null,
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  return rows.map((row) => {
+    const { memberId, nickname, profileImage, ...rest } = conversionUtils.snakeToCamel(row);
+    return {
+      ...rest,
+      owner: {
+        memberId,
+        nickname,
+        profileImage,
+      },
+    };
+  });
+};
+
+const findByIdWithVisible = async ({ conn, id }) => {
+  const sql = `SELECT *
+               FROM post
+               WHERE post_id = ?
+                 AND is_visible = TRUE`;
+  const values = [id];
+
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  return conversionUtils.snakeToCamel(rows[0]);
+};
+
+const findByIdWithOwner = async ({ conn, id }) => {
+
+  const sql = `SELECT p.*, m.member_id, m.nickname, m.profile_image
+               FROM post p
+                        JOIN member m ON p.owner_id = m.member_id
+               WHERE post_id = ?`;
+  const values = [id];
+
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  const { memberId, nickname, profileImage, ...rest } = conversionUtils.snakeToCamel(rows[0]);
+  return {
+    ...rest,
+    owner: {
+      memberId,
+      nickname,
+      profileImage,
+    },
   };
-
-  if (endIndex > 0) {
-    const slicedPosts = visiblePosts.slice(startIndex, endIndex);
-    const postsSliceDesc = slicedPosts.reverse();
-    if (startIndex !== 0) {
-      result.hasNext = true;
-      result.nextPage = page + 1;
-    }
-    result.data = postsSliceDesc;
-    return result;
-  }
-  return result; // data 가 null
-};
-
-const findById = postsId => {
-  return posts.find(post => post.postsId === postsId && post.isVisible);
 };
 
 module.exports = {
   save,
   deleteById,
   findAllOrderByIdDesc,
-  findById,
+  findByIdWithVisible,
+  findByIdWithOwner,
 };

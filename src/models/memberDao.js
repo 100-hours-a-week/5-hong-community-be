@@ -1,75 +1,117 @@
-// TODO: repository 메서드 중복 (member, post, comment) 리팩토링
+const { query } = require('../config/database');
+const { conversionUtils } = require('../utils');
 
-// 일단은 in-memory DB
-const { members } = require('./data');
+// command executor
 
-// 시작 ID
-let sequenceId = 5;
-
-const save = (member) => {
-  // memberId 가 없는 경우 (insert)
+const save = async ({ conn, member }) => {
   if (!member.memberId) {
-    member.memberId = sequenceId;
-    members.push(member);
-    sequenceId++;
-    return;
+    const [result] = await conn.query(  // insert query
+      `INSERT INTO member (email, password, nickname, profile_image)
+       VALUES (?, ?, ?, ?)`,
+      [member.email, member.password, member.nickname, member.profileImage],
+    );
+    return result.insertId;
   }
 
-  // memberId 가 있는 경우 (update)
-  const memberId = member.memberId;
-  const index = members.findIndex(member =>
-    member.memberId === memberId &&
-    member.isActive,
+  const [result] = await conn.query(  // update query
+    `UPDATE member
+     SET email         = ?,
+         password      = ?,
+         nickname      = ?,
+         profile_image = ?
+     WHERE member_id = ?`,
+    [member.email, member.password, member.nickname, member.profileImage, member.memberId],
   );
-
-  if (index !== -1) {
-    members[index] = member;
-    return;
-  }
-  throw new Error('존재하지 않는 회원 - 서버 (로직) 오류');
+  return result.insertId;
 };
 
-// 실제로 삭제하지 않고 isActive 만 false
-const deleteById = (id) => {
-  const index = members.findIndex((member) =>
-    member.memberId === id &&
-    member.isActive,
+const deleteById = async ({ conn, id }) => {
+  const [result] = await conn.query(
+    `UPDATE member
+     SET is_active = FALSE
+     WHERE member_id = ?`,
+    [id],
   );
-
-  if (index !== -1) {  // 해당 회원을 비활성화로 변경
-    members[index].isActive = false;
-    return;
-  }
-  throw new Error('존재하지 않는 회원 - 서버 (로직) 오류');
+  return result.insertId;
 };
 
-const findById = (memberId) => {
-  return members.find((member) =>
-    member.memberId === memberId &&
-    member.isActive,
-  );
+// query executor
+
+const findById = async ({ conn, id }) => {
+  const sql = `SELECT *
+               FROM member
+               WHERE member_id = ?
+                 AND is_active = TRUE`;
+  const values = [id];
+
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  return conversionUtils.snakeToCamel(rows[0]);
 };
 
-// TODO: 네이밍 변경
-// isActive 가 false => 즉, 탈퇴한 회원에서도 가져옴
-const findByIdAllowNotActive = (memberId) => {
-  return members.find((member) =>
-    member.memberId === memberId,
-  );
+const findByIdAllowNotActive = async ({ conn, id }) => {
+  const sql = `SELECT *
+               FROM member
+               WHERE member_id = ?`;
+  const values = [id];
+
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  return conversionUtils.snakeToCamel(rows[0]);
 };
 
-const findByNickname = (nickname) => {
-  return members.find((member) =>
-    member.nickname === nickname &&
-    member.isActive,
-  );
+const findByNickname = async ({ conn, nickname }) => {
+  const sql = `SELECT *
+               FROM member
+               WHERE nickname = ?`;
+  const values = [nickname];
+
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  return conversionUtils.snakeToCamel(rows[0]);
 };
 
-const findByEmail = (email) => {
-  return members.find((member) =>
-    member.email === email &&
-    member.isActive,
-  );
+const findByEmail = async ({ conn, email }) => {
+  const sql = `SELECT *
+               FROM member
+               WHERE email = ?`;
+  const values = [email];
+
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  return conversionUtils.snakeToCamel(rows[0]);
+};
+
+const findByEmailWithActive = async ({ conn, email }) => {
+  const sql = `SELECT *
+               FROM member
+               WHERE email = ?
+                 AND is_active = TRUE`;
+  const values = [email];
+
+  let rows;
+  if (conn)
+    rows = await conn.query(sql, values);
+  else
+    rows = await query(sql, values);
+
+  return conversionUtils.snakeToCamel(rows[0]);
 };
 
 module.exports = {
@@ -79,4 +121,5 @@ module.exports = {
   findByIdAllowNotActive,
   findByNickname,
   findByEmail,
+  findByEmailWithActive,
 };

@@ -8,14 +8,9 @@ const { loginRequired } = require('../middlewares/loginRequired');
 // member API
 router.post('/login', memberController.login);
 router.post('/signup', memberController.signup);
-// router.get('/:id', memberController.me);  // legacy
-// router.put('/:id/nickname', memberController.updateNickname);  // legacy
-// router.put('/:id/password', memberController.updatePassword);  // legacy
-// router.delete('/:id', memberController.withdraw);  // legacy
 router.get('/', loginRequired, memberController.me);
 router.post('/logout', loginRequired, memberController.logout);
 router.put('/nickname', loginRequired, memberController.updateNickname);
-// router.put('/profile', loginRequired, memberController.updateProfile);  // legacy
 router.put('/password', loginRequired, memberController.updatePassword);
 router.patch('/profile', loginRequired, memberController.updateProfile);
 router.delete('/', loginRequired, memberController.withdraw);

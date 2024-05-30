@@ -4,12 +4,9 @@ const { postController } = require('../controllers');
 const { loginRequired } = require('../middlewares/loginRequired');
 
 router.get('/', postController.slicePostList);
-router.get('/:id', postController.postsDetails);
-// router.post('/', postController.createPosts);  // legacy
-// router.put('/:id', postController.updatePostsDetails);  // legacy
-// router.delete('/:id', postController.deletePosts);  // legacy
-router.post('/', loginRequired, postController.createPosts);
-router.put('/:id', loginRequired, postController.updatePostsDetails);
-router.delete('/:id', loginRequired, postController.deletePosts);
+router.get('/:id', postController.postDetails);
+router.post('/', loginRequired, postController.createPost);
+router.put('/:id', loginRequired, postController.updatePostDetails);
+router.delete('/:id', loginRequired, postController.deletePost);
 
 module.exports = router;

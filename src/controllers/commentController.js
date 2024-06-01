@@ -1,18 +1,17 @@
-// TODO: page -> cursor
-
-const { commentDao } = require('../models');
+const { commentDao, postDao } = require('../models');
 const { command } = require('../config/database');
 const { timeUtils, cursorPageUtils } = require('../utils');
 
 // 10 댓글 씩 전송 (쿼리 요청 -> 10 +1 hasNext 필드)
-// 댓글 리스트(무한 스크롤) - [GET] "/api/v1/comments?postId=&page="
+// 댓글 리스트(무한 스크롤) - [GET] "/api/v1/comments?postId=&cursor="
 const sliceCommentList = async (req, res, next) => {
-  const { postId, page } = req.query;
+  const { postId, cursor } = req.query;
   const parsedPostId = postId ? parseInt(postId, 10) : 1;
-  const cursor = page ? parseInt(page, 10) : null;
+  const parsedCursor = cursor ? parseInt(cursor, 10) : null;
 
   const commentList =
-    await commentDao.findAllByPostIdOrderByIdDesc({ postId: parsedPostId, cursor });
+    await commentDao.findAllByPostIdOrderByIdDesc(parsedPostId, parsedCursor)
+      .catch(next);
 
   const maxViewNum = 5;
   const baseCursor = 'commentId';
@@ -40,10 +39,17 @@ const createComment = async (req, res, next) => {
       postId: intTypePostId,
       isVisible: true,
     };
-    await commentDao.save({ conn, comment: newComment });
+    await commentDao.save(newComment, conn);
+
+    const findPost = await postDao.findByIdWithVisible(postId, conn);
+    if (!findPost)
+      return res.status(404).json({ message: '존재하지 않는 게시글' });
+
+    findPost.commentCount++;  // 댓글 수 증가
+    await postDao.save(findPost, conn);
 
     return res.status(201).json({ message: '새 게시글 생성 완료' });
-  });
+  }).catch(next);
 };
 
 // 댓글 수정 - [PUT] "/api/v1/comments/{id}"
@@ -58,7 +64,7 @@ const updateComment = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    const findComment = await commentDao.findByIdWithVisible({ conn, id: commentId });
+    const findComment = await commentDao.findByIdWithVisible(commentId, conn);
     if (!findComment)
       return res.status(404).json({ message: '없는 댓글임' });
 
@@ -66,10 +72,10 @@ const updateComment = async (req, res, next) => {
       return res.status(403).json({ message: '권한이 없으' });
 
     findComment.contents = contents;
-    await commentDao.save({ conn, comment: findComment });
+    await commentDao.save(findComment, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 // 댓글 삭제 - [DELETE] "/api/v1/comments/{id}"
@@ -80,17 +86,25 @@ const deleteComment = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    const findComment = await commentDao.findByIdWithVisible({ conn, id: commentId });
+    const findComment = await commentDao.findByIdWithVisible(commentId, conn);
     if (!findComment)
       return res.status(404).json({ message: '존재하지 않는 댓글' });
 
     if (findComment.ownerId !== currentMember.memberId)
       return res.status(403).json({ message: '권한이 없으' });
 
-    await commentDao.deleteById({ conn, id: commentId });
+    await commentDao.deleteById(commentId, conn);
+
+    const postId = findComment.postId;
+    const findPost = await postDao.findByIdWithVisible(postId, conn);
+    if (!findPost)
+      return res.status(404).json({ message: '존재하지 않는 게시글' });
+
+    findPost.commentCount--;
+    await postDao.save(findPost, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 module.exports = {

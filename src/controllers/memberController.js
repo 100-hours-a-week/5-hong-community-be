@@ -17,7 +17,8 @@ const login = async (req, res, next) => {
   if (!email || !password)
     return res.status(400).json({ message: '필수 필드 누락' });
 
-  const findMember = await memberDao.findByEmailWithActive({ email });
+  const findMember = await memberDao.findByEmailWithActive(email)
+    .catch(next);
   if (!findMember)
     return res.status(404).json({ message: '존재하지 않는 이메일' });
 
@@ -38,11 +39,11 @@ const signup = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    const byEmail = await memberDao.findByEmail({ conn, email });
+    const byEmail = await memberDao.findByEmail(email, conn);
     if (byEmail)
       return res.status(409).json({ message: '이메일 중복' });
 
-    const byNickname = await memberDao.findByNickname({ conn, nickname });
+    const byNickname = await memberDao.findByNickname(nickname, conn);
     if (byNickname)
       return res.status(409).json({ message: '닉네임 중복' });
 
@@ -54,10 +55,10 @@ const signup = async (req, res, next) => {
       createdAt: timeUtils.getCurrentTime(),
       isActive: true,
     };
-    await memberDao.save({ conn, member: newMember });
+    await memberDao.save(newMember, conn);
 
     return res.status(201).json({ message: '회원가입 성공' });
-  });
+  }).catch(next);
 };
 
 // 로그아웃 - [POST] "/api/v1/members/logout"
@@ -78,15 +79,15 @@ const updateNickname = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    const isExist = await memberDao.findByNickname({ conn, nickname });
+    const isExist = await memberDao.findByNickname(nickname, conn);
     if (isExist)
       return res.status(409).json({ message: '이미 존재하는 닉네임' });
 
     currentMember.nickname = nickname;
-    await memberDao.save({ conn, member: currentMember });
+    await memberDao.save(currentMember, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 // 프로필 수정 (닉네임 이미지) - [PATCH] "/api/v1/members/profile"
@@ -99,16 +100,16 @@ const updateProfile = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    const isExist = await memberDao.findByNickname({ conn, nickname });
+    const isExist = await memberDao.findByNickname(nickname, conn);
     if (isExist)
       return res.status(409).json({ message: '이미 존재하는 닉네임' });
 
     currentMember.profileImage = profileImage;
     currentMember.nickname = nickname;
-    await memberDao.save({ conn, member: currentMember });
+    await memberDao.save(currentMember, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 // 비밀번호 수정 - [PUT] "/api/v1/members/password"
@@ -122,10 +123,10 @@ const updatePassword = async (req, res, next) => {
   // transaction
   return await command(async (conn) => {
     currentMember.password = password;
-    await memberDao.save({ conn, member: currentMember });
+    await memberDao.save(currentMember, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 // 회원 탈퇴 - [DELETE] "/api/v1/member"
@@ -135,10 +136,10 @@ const withdraw = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    await memberDao.deleteById({ conn, id: memberId });
+    await memberDao.deleteById(memberId, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 module.exports = {

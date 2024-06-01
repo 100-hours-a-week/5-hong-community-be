@@ -1,5 +1,3 @@
-// TODO: page -> cursor
-
 const { postDao } = require('../models');
 const { command } = require('../config/database');
 const { timeUtils, cursorPageUtils } = require('../utils');
@@ -7,12 +5,13 @@ const { timeUtils, cursorPageUtils } = require('../utils');
 const updateAllowField = ['title', 'contents', 'thumbnail']; // 수정 가능 부분
 
 // 5 게시글 씩 전송 (쿼리 요청 -> 5 +1 hasNext 필드)
-// 게시글 리스트(무한 스크롤) - [GET] "/api/v1/posts?page="
+// 게시글 리스트(무한 스크롤) - [GET] "/api/v1/posts?cursor="
 const slicePostList = async (req, res, next) => {
-  const { page } = req.query;
-  const cursor = page ? parseInt(page, 10) : null;
+  const { cursor } = req.query;
+  const parsedCursor = cursor ? parseInt(cursor, 10) : null;
 
-  const postList = await postDao.findAllOrderByIdDesc({ cursor });
+  const postList = await postDao.findAllOrderByIdDesc(parsedCursor)
+    .catch(next);
 
   const maxViewNum = 5;
   const baseCursor = 'postId';
@@ -26,11 +25,17 @@ const slicePostList = async (req, res, next) => {
 const postDetails = async (req, res, next) => {
   const postId = parseInt(req.params.id);
 
-  const findPost = await postDao.findByIdWithOwner({ id: postId });
-  if (!findPost)
-    return res.status(404).json({ message: '일치하는 게시글 없음' });
+  // transaction
+  return await command(async (conn) => {
+    const findPost = await postDao.findByIdWithOwner(postId, conn);
+    if (!findPost)
+      return res.status(404).json({ message: '일치하는 게시글 없음' });
 
-  return res.status(200).json(findPost);
+    findPost.hitCount++;
+    await postDao.save(findPost, conn);
+
+    return res.status(200).json(findPost);
+  }).catch(next);
 };
 
 // 게시글 생성 - [POST] "/api/v1/posts"
@@ -54,10 +59,10 @@ const createPost = async (req, res, next) => {
       ownerId: currentMember.memberId,
       isVisible: true,
     };
-    await postDao.save({ conn, post: newPost });
+    await postDao.save(newPost, conn);
 
     return res.status(201).json({ message: '게시글 생성 완료' });
-  });
+  }).catch(next);
 };
 
 // 게시글 수정 - [PUT] "/api/v1/posts/{id}"
@@ -68,7 +73,7 @@ const updatePostDetails = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    const findPost = await postDao.findByIdWithVisible({ conn, id: postId });
+    const findPost = await postDao.findByIdWithVisible(postId, conn);
     if (!findPost)
       return res.status(404).json({ message: '일치하는 게시글 없음' });
 
@@ -81,10 +86,10 @@ const updatePostDetails = async (req, res, next) => {
         findPost[key] = req.body[key];
       }
     });
-    await postDao.save({ conn, post: findPost });
+    await postDao.save(findPost, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 // 게시글 삭제 - [DELETE] "/api/v1/posts/{id}"
@@ -95,17 +100,17 @@ const deletePost = async (req, res, next) => {
 
   // transaction
   return await command(async (conn) => {
-    const findPost = await postDao.findByIdWithVisible({ conn, id: postId });
+    const findPost = await postDao.findByIdWithVisible(postId, conn);
     if (!findPost)
       return res.status(404).json({ message: '존재하지 않는 게시글' });
 
     if (findPost.ownerId !== currentMember.memberId)
       return res.status(403).json({ message: '권한이 없으' });
 
-    await postDao.deleteById({ conn, id: postId });
+    await postDao.deleteById(postId, conn);
 
     return res.status(204).end();
-  });
+  }).catch(next);
 };
 
 module.exports = {

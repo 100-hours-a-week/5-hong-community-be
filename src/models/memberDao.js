@@ -1,116 +1,106 @@
-const { query } = require('../config/database');
+const { executeQuery } = require('../config/database');
 const { conversionUtils } = require('../utils');
 
 // command executor
 
-const save = async ({ conn, member }) => {
-  if (!member.memberId) {
-    const [result] = await conn.query(  // insert query
-      `INSERT INTO member (email, password, nickname, profile_image)
-       VALUES (?, ?, ?, ?)`,
-      [member.email, member.password, member.nickname, member.profileImage],
-    );
-    return result.insertId;
+const save = async (member, conn) => {
+  if (member.memberId) {
+    return await updateMember(member, conn);
   }
+  return await insertMember(member, conn);
+};
 
-  const [result] = await conn.query(  // update query
-    `UPDATE member
-     SET email         = ?,
-         password      = ?,
-         nickname      = ?,
-         profile_image = ?
-     WHERE member_id = ?`,
-    [member.email, member.password, member.nickname, member.profileImage, member.memberId],
-  );
+const insertMember = async (member, conn) => {
+  const sql = `
+      INSERT INTO member (email, password, nickname, profile_image)
+      VALUES (?, ?, ?, ?)
+  `;
+  const values = [member.email, member.password, member.nickname, member.profileImage];
+  const result = await executeQuery(sql, values, conn);
   return result.insertId;
 };
 
-const deleteById = async ({ conn, id }) => {
-  const [result] = await conn.query(
-    `UPDATE member
-     SET is_active = FALSE
-     WHERE member_id = ?`,
-    [id],
-  );
+const updateMember = async (member, conn) => {
+  const sql = `
+      UPDATE member
+      SET email         = ?,
+          password      = ?,
+          nickname      = ?,
+          profile_image = ?
+      WHERE member_id = ?
+  `;
+  const values = [member.email, member.password, member.nickname, member.profileImage, member.memberId];
+  const result = await executeQuery(sql, values, conn);
+  return result.insertId;
+};
+
+const deleteById = async (id, conn) => {
+  const sql = `
+      UPDATE member
+      SET is_active = FALSE
+      WHERE member_id = ?
+  `;
+  const values = [id];
+  const result = await executeQuery(sql, values, conn);
   return result.insertId;
 };
 
 // query executor
 
-const findById = async ({ conn, id }) => {
-  const sql = `SELECT *
-               FROM member
-               WHERE member_id = ?
-                 AND is_active = TRUE`;
+const findById = async (id, conn) => {
+  const sql = `
+      SELECT *
+      FROM member
+      WHERE member_id = ?
+        AND is_active = TRUE
+  `;
   const values = [id];
 
-  let rows;
-  if (conn)
-    rows = await conn.query(sql, values);
-  else
-    rows = await query(sql, values);
+  const rows = await executeQuery(sql, values, conn);
 
   return conversionUtils.snakeToCamel(rows[0]);
 };
 
-const findByIdAllowNotActive = async ({ conn, id }) => {
-  const sql = `SELECT *
-               FROM member
-               WHERE member_id = ?`;
+const findByIdAllowNotActive = async (id, conn) => {
+  const sql = `
+      SELECT *
+      FROM member
+      WHERE member_id = ?
+  `;
   const values = [id];
-
-  let rows;
-  if (conn)
-    rows = await conn.query(sql, values);
-  else
-    rows = await query(sql, values);
-
+  const rows = await executeQuery(sql, values, conn);
   return conversionUtils.snakeToCamel(rows[0]);
 };
 
-const findByNickname = async ({ conn, nickname }) => {
-  const sql = `SELECT *
-               FROM member
-               WHERE nickname = ?`;
+const findByNickname = async (nickname, conn) => {
+  const sql = `
+      SELECT *
+      FROM member
+      WHERE nickname = ?
+  `;
   const values = [nickname];
-
-  let rows;
-  if (conn)
-    rows = await conn.query(sql, values);
-  else
-    rows = await query(sql, values);
-
+  const rows = await executeQuery(sql, values, conn);
   return conversionUtils.snakeToCamel(rows[0]);
 };
 
-const findByEmail = async ({ conn, email }) => {
+const findByEmail = async (email, conn) => {
   const sql = `SELECT *
                FROM member
                WHERE email = ?`;
   const values = [email];
-
-  let rows;
-  if (conn)
-    rows = await conn.query(sql, values);
-  else
-    rows = await query(sql, values);
-
+  const rows = await executeQuery(sql, values, conn);
   return conversionUtils.snakeToCamel(rows[0]);
 };
 
-const findByEmailWithActive = async ({ conn, email }) => {
-  const sql = `SELECT *
-               FROM member
-               WHERE email = ?
-                 AND is_active = TRUE`;
+const findByEmailWithActive = async (email, conn) => {
+  const sql = `
+      SELECT *
+      FROM member
+      WHERE email = ?
+        AND is_active = TRUE
+  `;
   const values = [email];
-
-  let rows;
-  if (conn)
-    rows = await conn.query(sql, values);
-  else
-    rows = await query(sql, values);
-
+  const rows = await executeQuery(sql, values, conn);
   return conversionUtils.snakeToCamel(rows[0]);
 };
 

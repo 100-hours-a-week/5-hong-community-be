@@ -14,13 +14,16 @@ CREATE TABLE IF NOT EXISTS member
 -- 게시글 테이블
 CREATE TABLE IF NOT EXISTS post
 (
-    post_id    BIGINT       NOT NULL AUTO_INCREMENT,
-    owner_id   BIGINT       NOT NULL,
-    title      VARCHAR(255) NOT NULL,
-    contents   LONGTEXT     NOT NULL,
-    thumbnail  VARCHAR(255),
-    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-    is_visible BOOLEAN     DEFAULT TRUE,
+    post_id       BIGINT       NOT NULL AUTO_INCREMENT,
+    owner_id      BIGINT       NOT NULL,
+    title         VARCHAR(255) NOT NULL,
+    contents      LONGTEXT     NOT NULL,
+    thumbnail     VARCHAR(255),
+    like_count    INT UNSIGNED DEFAULT 0,
+    comment_count INT UNSIGNED DEFAULT 0,
+    hit_count     INT UNSIGNED DEFAULT 0,
+    created_at    DATETIME(6)  DEFAULT CURRENT_TIMESTAMP(6),
+    is_visible    BOOLEAN      DEFAULT TRUE,
     PRIMARY KEY (post_id),
     FOREIGN KEY (owner_id) REFERENCES member (member_id)
 ) ENGINE = INNODB;

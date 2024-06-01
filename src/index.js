@@ -5,6 +5,8 @@ const session = require('express-session');
 const routes = require('./routes');
 const corsOptions = require('./config/corsConfig');
 const sessionOptions = require('./config/sessionConfig');
+const errorHandler = require('./middlewares/errorHandler');
+
 const apiPrefix = '/api/v1';
 
 const createApp = () => {
@@ -16,6 +18,7 @@ const createApp = () => {
   app.use(express.urlencoded({ extended: true }));
   app.use(session(sessionOptions));
   app.use(apiPrefix, routes);
+  app.use(errorHandler);
 
   app.use('/public/images', express.static('public/images'));
 
